@@ -13,7 +13,13 @@ class ServerlessOfflineSSM {
                 return Promise.resolve();
             }
             const value = (_a = this.config.ssm) === null || _a === void 0 ? void 0 : _a[key];
-            return value ? Promise.resolve(value) : util_1.getValueFromEnv(key);
+            const promisifiedValue = value
+                ? Promise.resolve(value)
+                : util_1.getValueFromEnv(key);
+            if (key.startsWith('/aws/reference/secretsmanager')) {
+                return promisifiedValue.then(JSON.parse).catch(() => promisifiedValue);
+            }
+            return promisifiedValue;
         };
         this.shouldExecute = () => {
             var _a, _b;
@@ -37,6 +43,10 @@ class ServerlessOfflineSSM {
         };
         this.log = serverless.cli.log.bind(serverless.cli);
         this.config = (_b = (_a = serverless.service.custom) === null || _a === void 0 ? void 0 : _a['serverless-offline-ssm']) !== null && _b !== void 0 ? _b : {};
+        let { ssmOfflineStages } = options;
+        if (typeof ssmOfflineStages === 'string' && !!ssmOfflineStages) {
+            this.config.stages = ssmOfflineStages.split(',');
+        }
         this.provider = 'aws';
         // check for valid configuration
         this.valid();
