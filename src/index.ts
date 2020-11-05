@@ -35,6 +35,10 @@ class ServerlessOfflineSSM implements Plugin {
   ) {
     this.log = serverless.cli.log.bind(serverless.cli)
     this.config = serverless.service.custom?.['serverless-offline-ssm'] ?? {}
+    let { ssmOfflineStages }: any = options
+    if (typeof ssmOfflineStages === 'string' && !!ssmOfflineStages) {
+      this.config.stages = ssmOfflineStages.split(',')
+    }
     this.provider = 'aws'
 
     // check for valid configuration
